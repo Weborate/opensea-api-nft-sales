@@ -20,6 +20,7 @@ def get_events(start_date, end_date, cursor='', event_type='successful', **kwarg
              "occurred_after": start_date,
              "event_type": event_type,
              "cursor": cursor,
+             "asset_contract_address": "0x965c6Aec708d9D3f405A5126209f8D4E3cc253C4",
              **kwargs
              }
 
@@ -82,6 +83,8 @@ def fetch_all_events(start_date, end_date, pause=1, **kwargs):
 
     print(f"Fetching events between {start_date} and {end_date}")
     while fetch:
+        if (verbose == True):
+            print('Cursor: ' + str(next))
         response = get_events(int(start_date.timestamp()), int(end_date.timestamp()), cursor=next, **kwargs)
 
         for event in response['asset_events']:
@@ -124,13 +127,17 @@ def valid_datetime(arg_datetime_str):
             msg = "Given Datetime ({0}) not valid! Expected format, 'YYYY-MM-DD' or 'YYYY-MM-DD HH:mm'!".format(arg_datetime_str)
             raise argparse.ArgumentTypeError(msg)   
 
+verbose = False
 def main():
+    global verbose
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', "--startdate", help="The Start Date (YYYY-MM-DD or YYYY-MM-DD HH:mm)", required=True, type=valid_datetime)
     parser.add_argument('-e', "--enddate", help="The End Date (YYYY-MM-DD or YYYY-MM-DD HH:mm)", required=True, type=valid_datetime)
     parser.add_argument('-p', '--pause', help='Seconds to wait between http requests. Default: 1', required=False, default=1, type=float)
     parser.add_argument('-o', '--outfile', help='Output file path for saving nft sales record in csv format', required=False, default='./data.csv', type=str)
+    parser.add_argument('-v', '--verbose', help='Verbose logs. Default: False', required=False, default=False, type=bool)
     args = parser.parse_args()
+    verbose = args.verbose
     res = fetch_all_events(args.startdate.replace(tzinfo=timezone.utc), args.enddate.replace(tzinfo=timezone.utc), args.pause)
 
     if len(res) != 0:
